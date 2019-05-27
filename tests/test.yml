@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - role: ../ansible-role-hashicorp-app
+      vars:
+        hashicorp_app_name: terraform

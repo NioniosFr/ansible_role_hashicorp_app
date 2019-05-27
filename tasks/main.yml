@@ -1,0 +1,89 @@
+---
+- name: Fail early if we do not support the current environment
+  fail:
+        msg: "Only 'x86_64' architectures are supported for now."
+  when: ansible_architecture != 'x86_64'
+
+- name: Fail early if we miss variables
+  fail:
+        msg: "You need to specify (at least) the variable: `hashicorp_app_name`"
+  when: hashicorp_app_name is undefined
+
+- name: Fail when unsupported package name is specified
+  fail:
+        msg: "Unsupported `hashicorp_app_name` was specified. Supported packages are: {{ hashicorp_app_supported_list | join(', ') }}"
+  when: hashicorp_app_name not in hashicorp_app_supported_list
+
+- name: Fail if vault 'latest' is the specified package
+  fail:
+        msg: "`hashicorp_app_version` cannot be `latest` for {{ hashicorp_app_name }}. Specify a specific an actual version instead."
+  when: hashicorp_app_version == 'latest' and hashicorp_app_name == 'vault'
+
+- name: Fail if atlas-upload-cli 'latest' is the specified package
+  fail:
+        msg: "`hashicorp_app_version` cannot be `latest` for {{ hashicorp_app_name }}. Specify a specific an actual version instead."
+  when: hashicorp_app_version == 'latest' and hashicorp_app_name == 'atlas-upload-cli'
+
+- name: Set fact for the version check
+  set_fact:
+        hashicorp_checkpoint: "{{ lookup('url', 'https://checkpoint-api.hashicorp.com/v1/check/' + hashicorp_app_name, split_lines=False) | from_json }}"
+  when: hashicorp_app_version == 'latest'
+
+- name: Set fact for the version variable
+  set_fact:
+        hashicorp_app_version: "{{ hashicorp_checkpoint | json_query('current_version') }}"
+  when: hashicorp_checkpoint is defined
+
+- name: Lookup the SHA sums file
+  set_fact:
+        hashicorp_app_sha_lines: "{{ lookup('url', hashicorp_app_shafile_url, split_lines=False) }}"
+        hashicorp_app_regex_search: "([a-zA-Z0-9]*)\\s+{{ hashicorp_app_name }}_[0-9\\.]+_linux_amd64\\.zip"
+
+- name: Filter the sha256 sum
+  set_fact:
+      hashicorp_app_sha: "{{ hashicorp_app_sha_lines | regex_search(hashicorp_app_regex_search) | regex_replace('^(?P<sha>\\w+).*$', '\\g<sha>') }}"
+
+- name: Download hashicorp_package
+  get_url:
+        url: "{{ hashicorp_app_downloadable_url }}"
+        dest: "{{ hashicorp_app_tmp_dir }}/{{ hashicorp_app_zip }}"
+        mode: 0644
+        checksum: "sha256:{{ hashicorp_app_sha }}"
+
+- name: Make directory
+  file:
+        path: "{{ hashicorp_app_binary_dest }}"
+        state: directory
+        mode: 0755
+
+- name: Unpack the package in place
+  unarchive:
+        src: "{{ hashicorp_app_tmp_dir }}/{{ hashicorp_app_zip }}"
+        remote_src: yes
+        dest: "{{ hashicorp_app_binary_dest }}"
+        mode: 0755
+
+- name: Add a profile.d PATH file for the hashicorp_package binary
+  lineinfile:
+        path: /etc/profile.d/{{ hashicorp_app_name }}-path.sh
+        regexp: '^export\sPATH'
+        line: 'export PATH="{{ hashicorp_app_system_path_value }}"'
+        state: present
+        insertafter: EOF
+        create: yes
+        mode: 0644
+  when: hashicorp_app_configure_system_path
+
+- name: Remove any profile.d PATH file
+  file:
+        state: absent
+        path: /etc/profile.d/{{ hashicorp_app_name }}-path.sh
+  when: not hashicorp_app_configure_system_path and hashicorp_app_cleanup_after
+
+- name: Cleanup the downloadable (non-idempotent)
+  file:
+        state: absent
+        dest: "{{ item }}"
+  when: hashicorp_app_cleanup_after
+  loop:
+        - "{{ hashicorp_app_tmp_dir }}/{{ hashicorp_app_zip }}"

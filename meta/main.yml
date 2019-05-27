@@ -1,0 +1,49 @@
+---
+dependencies: []
+
+galaxy_info:
+  role_name: hashicorp_app
+  author: NioniosFr
+  description: A generic role to install HashiCorp applications in a Linux x86_64 based distro.
+  license: "license (MIT)"
+
+  min_ansible_version: 2.4
+
+  platforms:
+    - name: Fedora
+      versions:
+        - 27
+        - 28
+        - 29
+
+    - name: EL
+      versions:
+        - all
+
+    - name: Ubuntu
+      versions:
+        - all
+
+    - name: Debian
+      versions:
+        - all
+
+  galaxy_tags:
+    - development
+    - system
+    - infrastructure
+    - orchestration
+    - automation
+    - hashicorp
+    - cloud
+    - packaging
+    - build
+    - clustering
+    - monitoring
+    - vagrant
+    - packer
+    - consul
+    - vault
+    - terraform
+    - nomad
+    - atlas

@@ -1,0 +1,13 @@
+---
+
+# hashicorp_app_name: "terraform"
+hashicorp_app_version: "latest"
+
+hashicorp_app_binary_dest: "/opt/{{ hashicorp_app_name }}"
+
+hashicorp_app_cleanup_after: false
+
+hashicorp_app_configure_system_path: true
+hashicorp_app_system_path_prepend: false
+
+hashicorp_app_tmp_dir: "/tmp"
