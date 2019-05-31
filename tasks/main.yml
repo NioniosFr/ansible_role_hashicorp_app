@@ -72,7 +72,7 @@
         insertafter: EOF
         create: yes
         mode: 0644
-  when: hashicorp_app_configure_system_path
+  when: hashicorp_app_configure_system_path | bool
 
 - name: Remove any profile.d PATH file
   file:
@@ -84,6 +84,6 @@
   file:
         state: absent
         dest: "{{ item }}"
-  when: hashicorp_app_cleanup_after
+  when: hashicorp_app_cleanup_after | bool
   loop:
         - "{{ hashicorp_app_tmp_dir }}/{{ hashicorp_app_zip }}"

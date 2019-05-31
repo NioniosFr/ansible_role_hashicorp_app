@@ -17,6 +17,8 @@ hashicorp_app_shafile_url: "{{ hashicorp_app_releases_url }}/{{ hashicorp_app_na
 hashicorp_app_downloadable: "{{ hashicorp_app_name }}_{{ hashicorp_app_version }}_linux_amd64.zip" # For now we support only linux-x86_64
 hashicorp_app_downloadable_url: "{{ hashicorp_app_releases_url }}/{{ hashicorp_app_downloadable }}"
 
-hashicorp_app_zip: "{{hashicorp_app_name }}_{{ hashicorp_app_version }}.zip"
+hashicorp_app_zip: "{{ hashicorp_app_name }}_{{ hashicorp_app_version }}.zip"
 
-hashicorp_app_system_path_value: "{%if hashicorp_app_system_path_prepend %}{{ hashicorp_app_binary_dest }}:${PATH}{% else %}${PATH}:{{ hashicorp_app_binary_dest }}{% endif %}"
+_hsapp: "{{ hashicorp_app_system_path_prepend }}"
+_hsabd: "{{ hashicorp_app_binary_dest }}"
+hashicorp_app_system_path_value: "{%if _hsapp %}{{ _hsabd }}:${PATH}{% else %}${PATH}:{{ _hsabd }}{% endif %}"
