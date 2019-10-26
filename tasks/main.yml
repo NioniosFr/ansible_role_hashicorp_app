@@ -37,7 +37,7 @@
 - name: Lookup the SHA sums file
   set_fact:
         hashicorp_app_sha_lines: "{{ lookup('url', hashicorp_app_shafile_url, split_lines=False) }}"
-        hashicorp_app_regex_search: "([a-zA-Z0-9]*)\\s+{{ hashicorp_app_name }}_[0-9\\.]+_linux_amd64\\.zip"
+        hashicorp_app_regex_search: "([a-zA-Z0-9]*)\\s+(\\.?/?){{ hashicorp_app_name }}_[0-9\\.]+_linux_amd64\\.zip"
 
 - name: Filter the sha256 sum
   set_fact:
